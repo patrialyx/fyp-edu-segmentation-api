@@ -1,6 +1,6 @@
 #TODO: use 2 pointer method and parse through all bert tokens and postags words and tokens and fix logic
 import spacy
-from .config import TOKENIZER
+from .config_bert import TOKENIZER
 from typing import List
 
 

@@ -1,5 +1,5 @@
 import spacy
-from .config import PATH, SAMPLE_NUM,TOKENIZER
+from .config_bert import PATH, SAMPLE_NUM,TOKENIZER
 from typing import List
 import os
 import numpy as np

@@ -6,7 +6,7 @@ import transformers
 from tqdm import tqdm
 from sklearn.metrics import f1_score, precision_score, recall_score
 
-from .config import DEVICE, SAVE_PATH
+from .config_bert import DEVICE, SAVE_PATH
 import os
 
 def train_fn(x, x_mask, y, model, optimizer):

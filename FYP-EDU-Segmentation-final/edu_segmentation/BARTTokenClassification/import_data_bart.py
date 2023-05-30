@@ -2,7 +2,7 @@ import os
 from typing import List
 from transformers import BartTokenizer
 import numpy as np
-from .config import TRAIN_PATH
+from .config_bart import TRAIN_PATH
 
 tokenizer = BartTokenizer.from_pretrained("facebook/bart-base")
 

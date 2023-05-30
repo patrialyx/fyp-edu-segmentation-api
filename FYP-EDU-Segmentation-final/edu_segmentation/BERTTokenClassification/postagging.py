@@ -1,5 +1,5 @@
 import spacy
-from .config import TOKENIZER
+from .config_bert import TOKENIZER
 from typing import List
 
 

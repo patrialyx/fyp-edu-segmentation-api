@@ -9,7 +9,9 @@ import torch
 import transformers
 import numpy as np
 
-from .config import TOKENIZER
+from .config_bert import DEVICE, TOKENIZER
+
+import time
 
 
 def bert_tokenizer(text: str) -> List[int]:
@@ -21,6 +23,7 @@ def bert_tokenizer(text: str) -> List[int]:
     Explicitly differentiate real tokens from padding tokens with the “attention mask”.
 
     '''
+    warnings.filterwarnings('ignore')
     tokens = TOKENIZER.encode_plus(
         text,                      # Sentence to encode.
         add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
@@ -106,6 +109,7 @@ def parse_input(inputstring: str):
     return all_tokens, all_masks, all_boundaries
 
 def get_inference(inputstring, model_name):
+    warnings.filterwarnings('ignore')
     x, x_mask, y = parse_input(inputstring)
     if model_name == "BERT_token_classification_final.pth":
         model = transformers.BertForTokenClassification.from_pretrained('bert-base-uncased', num_labels=2)
@@ -116,25 +120,28 @@ def get_inference(inputstring, model_name):
     directory_to_look = os.path.join(
         os.path.dirname(__file__), f"model_dependencies/{model_name}"
     )
-    state_dict = torch.load(directory_to_look,
-                         map_location=torch.device('cpu'))
+    state_dict = torch.load(directory_to_look, map_location=torch.device(DEVICE))
 
     # Remove the "module." prefix from the state keys
     new_state_dict = {key.replace("module.", ""): value for key, value in state_dict.items()}
 
 
     model.load_state_dict(new_state_dict)
-    model = model.to(torch.device('cpu'))
+    model = model.to(DEVICE)
     model.eval()
 
-    x = torch.tensor(x, dtype=torch.int64).to(torch.device('cpu'), dtype=torch.int64)
-    x_mask = torch.tensor(x_mask, dtype=torch.int64).to(torch.device('cpu'), dtype=torch.int64)
+    x = torch.tensor(x, dtype=torch.int64).to(DEVICE)
+    x_mask = torch.tensor(x_mask, dtype=torch.int64).to(DEVICE)
 
+    prediction_start = time.time()
     with torch.no_grad():
         output = model(x, token_type_ids=None, attention_mask=x_mask)
-        predictions = np.argmax(output[0].detach().numpy(), axis=2)
+        predictions = np.argmax(output[0].detach().cpu().numpy(), axis=2)
         boundaries = [np.where(arr == 1)[0] for arr in predictions]
+    prediction_end = time.time()
+    print('prediction_bert timing:', prediction_end-prediction_start)
 
+    postproc_start = time.time()
     segments = []
     for i in range(len(boundaries)):
         if (len(boundaries[i]) == 0):
@@ -162,6 +169,8 @@ def get_inference(inputstring, model_name):
                     start = boundary + 1
                 else:
                     continue
+    end_proc = time.time()
+    print('post processing time;', end_proc-postproc_start)
     return segments
 
 def preprocess_sent(sent):
@@ -173,10 +182,18 @@ def preprocess_sent(sent):
 
 def run_segbot_bert_uncased(sent):
     sent = preprocess_sent(sent)
-    return get_inference(sent, "BERT_token_classification_final.pth")
+    start_time = time.time()
+    output = get_inference(sent, "BERT_token_classification_final.pth")
+    end_time = time.time()
+    print('elapsed time for bert uncased:', end_time-start_time)
+    return output
 
 def run_segbot_bert_cased(sent):
     global TOKENIZER 
     TOKENIZER = AutoTokenizer.from_pretrained("bert-base-cased")
     sent = preprocess_sent(sent)
-    return get_inference(sent, "BERT_token_classification_final_cased.pth")
+    start_time = time.time()
+    output = get_inference(sent, "BERT_token_classification_final_cased.pth")
+    end_time = time.time()
+    print('elapsed time for bert cased:', end_time-start_time)
+    return output

@@ -2,7 +2,7 @@ import warnings
 from typing import List
 import numpy as np
 import torch
-from .config import DEVICE, TOKENIZER
+from .config_bart import DEVICE, TOKENIZER
 from .solver_bart import TrainSolver
 import os
 import time
@@ -89,7 +89,7 @@ def parse_input(inputstring: str):
             cur_mask = []
             cur_boundaries = []
             cur = 0
-
+   
     if cur_tokens != []:
         pad_tokens_count = max_token_len - len(cur_tokens)
         pad = [1] * pad_tokens_count
@@ -105,6 +105,7 @@ def parse_input(inputstring: str):
         all_masks.append(np.asarray(cur_mask))
         all_boundaries.append(np.asarray(cur_boundaries))
 
+
     return all_tokens, all_masks, all_boundaries
 
 
@@ -115,12 +116,20 @@ def get_inference(inputstring):
     # print('length of the input string:', len(inputstring), inputstring)
     if not " " in inputstring:
         return [["0,1", f"{inputstring}"]]
+
+    parse_input_start = time.time()
     X_in, X_mask, Y_in = parse_input(inputstring)
+    parse_input_end = time.time()
+    print('parse input timing', parse_input_end-parse_input_start)
+
     segments = []
     directory_to_look = os.path.join(
         os.path.dirname(__file__), "model_dependencies/model_segbot_bart.torchsave"
     )
-    mymodel = torch.load(directory_to_look, map_location=DEVICE)
+
+    # takes about half a second to torch load
+    mymodel = torch.load(directory_to_look)
+
     mymodel.to(DEVICE)
     # mymodel = mymodel.cuda()  # Move the model to CUDA
     # mymodel.use_cuda = True
@@ -149,15 +158,16 @@ def get_inference(inputstring):
         weight_decay=0.0002
     )
 
+    # this for loop takes about half a second
     for i in range(len(X_in)):
 
         cur_X_in = np.asarray([X_in[i]])
         cur_X_mask = np.asarray([X_mask[i]])
         cur_Y_in = np.asarray([Y_in[i]])
 
-        # start_time = time.time()
+        
         (visdata) = mysolver.check_accuracy(cur_X_in, cur_X_mask, cur_Y_in)
-        # time_taken = time.time() - start_time
+        
         
         start_b = visdata[3][0]
         end_b = visdata[2][0] + 1
@@ -166,7 +176,6 @@ def get_inference(inputstring):
             seg = TOKENIZER.decode(X_in[i][start_b[j] : END])
             seg = seg.replace("<pad>", "")
             segments.append([f"{str(start_b[j])},{str(end_b[j])}", seg])
-        
 
         # print("--- %s seconds ---" % (time_taken))
     
@@ -185,7 +194,10 @@ def run_segbot_bart(sent):
     sent = sent.replace(", ", " , ").replace(". ", " . ").replace("; ", " ; ")
     if sent[-1] == ".":
         sent = sent[:-1] + " ."
+    start_time = time.time()
     output_seg = get_inference(sent)
+    end_time = time.time()
+    print('elapsed time for bart:', end_time-start_time)
     return output_seg
 
 

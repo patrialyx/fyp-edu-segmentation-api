@@ -2,7 +2,7 @@ import os
 from typing import List
 import numpy as np
 
-from .config import PATH, SAMPLE_NUM, TOKENIZER
+from .config_bert import PATH, SAMPLE_NUM, TOKENIZER
 
 
 def get_average_max_edu_len():

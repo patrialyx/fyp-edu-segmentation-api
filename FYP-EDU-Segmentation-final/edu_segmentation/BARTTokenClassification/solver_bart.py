@@ -9,7 +9,7 @@ from torch.nn.utils import clip_grad_norm
 import copy
 import os
 import time
-from .config import DEVICE
+from .config_bart import DEVICE
 # DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def get_decoder_index_XY(batchY):
@@ -240,7 +240,7 @@ class TrainSolver(object):
             ) = self.model.predict(batch_x, batch_x_mask, index_decoder_Y, all_lens)
 
             end_time = time.time()
-            # print('elapsed:', end_time-start_time)
+            print('predict elapsed time:', end_time-start_time)
 
 
             # try:
