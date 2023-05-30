@@ -1,3 +1,6 @@
+*.torchsave
+*.pth
+*.pyc
 # Logs
 logs
 *.log
