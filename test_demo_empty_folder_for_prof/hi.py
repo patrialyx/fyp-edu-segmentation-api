@@ -10,7 +10,7 @@ models = ["bart", "bert_uncased", "bert_cased"]
 for m in models:
     for g in granularity_levels:
         start_time = time.time()
-        output_var = main.run_segbot(text, g, m)
+        output_var = main.run_segbot(text, g, m, device='cpu')
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"### model: {m}, granularity level: {g}")

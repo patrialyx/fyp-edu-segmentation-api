@@ -109,7 +109,7 @@ def parse_input(inputstring: str):
     return all_tokens, all_masks, all_boundaries
 
 
-def get_inference(inputstring):
+def get_inference(inputstring, DEVICE):
     """
     Load trained model and run the inference on each input sequence
     """
@@ -190,12 +190,12 @@ def get_inference(inputstring):
     return segments
 
 
-def run_segbot_bart(sent):
+def run_segbot_bart(sent, device):
     sent = sent.replace(", ", " , ").replace(". ", " . ").replace("; ", " ; ")
     if sent[-1] == ".":
         sent = sent[:-1] + " ."
     start_time = time.time()
-    output_seg = get_inference(sent)
+    output_seg = get_inference(sent, device)
     end_time = time.time()
     print('elapsed time for bart:', end_time-start_time)
     return output_seg

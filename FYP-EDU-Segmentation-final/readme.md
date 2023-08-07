@@ -16,3 +16,4 @@ Liu Qingyi, Patria Lim
 <li> Options:
 <li> granularity level = ["default", "conjunction words"]
 <li> model = ["bart", "bert_uncased", "bert_cased"]
+<li> device = ["cuda", "cpu"]

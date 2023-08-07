@@ -108,7 +108,7 @@ def parse_input(inputstring: str):
 
     return all_tokens, all_masks, all_boundaries
 
-def get_inference(inputstring, model_name):
+def get_inference(inputstring, model_name, DEVICE):
     warnings.filterwarnings('ignore')
     x, x_mask, y = parse_input(inputstring)
     if model_name == "BERT_token_classification_final.pth":
@@ -120,6 +120,7 @@ def get_inference(inputstring, model_name):
     directory_to_look = os.path.join(
         os.path.dirname(__file__), f"model_dependencies/{model_name}"
     )
+
     state_dict = torch.load(directory_to_look, map_location=torch.device(DEVICE))
 
     # Remove the "module." prefix from the state keys
@@ -180,20 +181,20 @@ def preprocess_sent(sent):
         sent = sent[:-1] + " ."
     return sent
 
-def run_segbot_bert_uncased(sent):
+def run_segbot_bert_uncased(sent, device):
     sent = preprocess_sent(sent)
     start_time = time.time()
-    output = get_inference(sent, "BERT_token_classification_final.pth")
+    output = get_inference(sent, "BERT_token_classification_final.pth", device)
     end_time = time.time()
     print('elapsed time for bert uncased:', end_time-start_time)
     return output
 
-def run_segbot_bert_cased(sent):
+def run_segbot_bert_cased(sent, device):
     global TOKENIZER 
     TOKENIZER = AutoTokenizer.from_pretrained("bert-base-cased")
     sent = preprocess_sent(sent)
     start_time = time.time()
-    output = get_inference(sent, "BERT_token_classification_final_cased.pth")
+    output = get_inference(sent, "BERT_token_classification_final_cased.pth", device)
     end_time = time.time()
     print('elapsed time for bert cased:', end_time-start_time)
     return output
