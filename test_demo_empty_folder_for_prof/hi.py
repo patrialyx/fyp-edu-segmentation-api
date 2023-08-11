@@ -3,12 +3,10 @@ import time
 
 download.download_models()
 
-text = ""
+text = "The food is good but the service is bad."
 
-# granularity_levels = ["default", "conjunction_words"]
-# models = ["bart", "bert_uncased", "bert_cased"]
-granularity_levels = ["default"]
-models = ["bart"]
+granularity_levels = ["default", "conjunction_words"]
+models = ["bart", "bert_uncased", "bert_cased"]
 for m in models:
     for g in granularity_levels:
         start_time = time.time()
