@@ -12,8 +12,10 @@ Liu Qingyi, Patria Lim
 
 ### How to Use
 <li> `from edu_segmentation import download`: use `download.download_models()` to download all models
-<li> `from edu_segmentation import main`: use `main.run_segbot(user_input, granularity_level="default", model="bart")` to perform edu-segmentation
+<li> `from edu_segmentation import main`: use `main.run_segbot(sent, granularity_level="default", model="bart", conjunctions=["and", "but", "however"], device='cuda')` to perform edu-segmentation
 <li> Options:
-<li> granularity level = ["default", "conjunction words"]
+<li> granularity level = ["default", "conjunction_words"]
 <li> model = ["bart", "bert_uncased", "bert_cased"]
 <li> device = ["cuda", "cpu"]
+
+<li> conjunctions = <user can input their choice of conjunctions into a list>
