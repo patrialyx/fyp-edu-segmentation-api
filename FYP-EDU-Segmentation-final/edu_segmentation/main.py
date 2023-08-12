@@ -1,28 +1,25 @@
-from .BARTTokenClassification.run_segbot_bart import run_segbot_bart
-from .BERTTokenClassification.run_bert import run_segbot_bert_cased, run_segbot_bert_uncased
+from abc import ABC, abstractmethod
+from BARTTokenClassification.run_segbot_bart import run_segbot_bart
+from BERTTokenClassification.run_bert import run_segbot_bert_cased, run_segbot_bert_uncased
 import warnings
 
-def run_segbot(sent, granularity_level="default", model="bart", conjunctions=["and", "but", "however"], device='cpu'):
-    warnings.filterwarnings('ignore')
-    print(f"----------- EDU Segmentation with Segbot with {model} model at granularity level: {granularity_level}----------")
+class SegmentationStrategy(ABC):
+    @abstractmethod
+    def segment(self, model_output):
+        pass
 
-    segbot_model = run_segbot_bart
-    if model == "bert_uncased":
-        segbot_model = run_segbot_bert_uncased
-    elif model == "bert_cased":
-        segbot_model = run_segbot_bert_cased
+class ConjunctionSegmentation(SegmentationStrategy):
 
-    output = segbot_model(sent, device)
-    results = []
-    if granularity_level == "conjunction_words":
-        for segment in output:
+    def segment(self, model_output, conjunctions):
+        results = []
+        for segment in model_output:
             index_str = segment[0].split(",")
-            index_begin = index_str[0]        
-            index_end = index_str[1]       
+            index_begin = index_str[0]
+            index_end = index_str[1]
             word_str = segment[1]
             word_str = word_str.strip()
             testing_var = word_str.rstrip(".")
-            print(word_str)
+            
             if testing_var.startswith(tuple(conjunctions)) and not testing_var.endswith(tuple(conjunctions)):
                 splitted = word_str.split()
                 first_word = splitted[0]
@@ -46,5 +43,51 @@ def run_segbot(sent, granularity_level="default", model="bart", conjunctions=["a
             else:
                 results.append(segment)
         return results
-    else:
+
+class DefaultSegmentation(SegmentationStrategy):
+    def segment(self, model_output):
+        return model_output
+
+class SegbotModel:
+    @abstractmethod
+    def run_segbot(self, sent, device):
+        pass
+
+class BARTModel(SegbotModel):
+    def run_segbot(self, sent, device):
+        return run_segbot_bart(sent, device)
+
+class BERTUncasedModel(SegbotModel):
+    def run_segbot(self, sent, device):
+        return run_segbot_bert_uncased(sent, device)
+
+class BERTCasedModel(SegbotModel):
+    def run_segbot(self, sent, device):
+        return run_segbot_bert_cased(sent, device)
+
+class ModelFactory:
+    @staticmethod
+    def create_model(model_type):
+        if model_type == "bert_uncased":
+            return BERTUncasedModel()
+        elif model_type == "bert_cased":
+            return BERTCasedModel()
+        elif model_type == "bart":
+            return BARTModel()
+        else:
+            return "This model does not exist"
+
+class EDUSegmentation:
+    def __init__(self, model):
+        self.model = model
+
+    def run(self, sent, granularity="default", conjunctions=["and", "but", "however"], device='cpu'):
+        warnings.filterwarnings('ignore')
+        output = self.model.run_segbot(sent, device)
+        if granularity=="default":
+            output = DefaultSegmentation().segment(output)
+        elif granularity=="conjunction_words":
+            output = ConjunctionSegmentation().segment(output, conjunctions)
         return output
+
+
