@@ -1,18 +1,19 @@
-from edu_segmentation import download, main
-import time
+from edu_segmentation.download import download_models
+from edu_segmentation.main import ModelFactory, EDUSegmentation
 
-download.download_models()
+download_models()
 
-text = "The food is good but the service is bad."
+# Create a BERT Uncased model
+model = ModelFactory.create_model("bert_uncased")
 
-granularity_levels = ["default", "conjunction_words"]
-models = ["bart", "bert_uncased", "bert_cased"]
-for m in models:
-    for g in granularity_levels:
-        start_time = time.time()
-        output_var = main.run_segbot(text, g, m)
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        print(f"### model: {m}, granularity level: {g}")
-        print(output_var)
-        print(f"elapsed time: {elapsed_time}s")
+# Create an instance of EDUSegmentation using the model
+edu_segmenter = EDUSegmentation(model)
+
+# Segment the text using the conjunction-based segmentation strategy
+text = "The food is good, but the service is bad."
+granularity = "conjunction_words"
+conjunctions = ["and", "but", "however"]
+device = 'cpu'
+
+segmented_output = edu_segmenter.run(text, granularity, conjunctions, device)
+print(segmented_output)

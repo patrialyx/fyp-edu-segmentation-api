@@ -110,6 +110,9 @@ def parse_input(inputstring: str):
 
 def get_inference(inputstring, model_name, DEVICE):
     warnings.filterwarnings('ignore')
+    inputstring_len = len(inputstring.split(" "))
+    sent = inputstring
+    inputstring = preprocess_sent(inputstring)
     x, x_mask, y = parse_input(inputstring)
     if model_name == "BERT_token_classification_final.pth":
         model = transformers.BertForTokenClassification.from_pretrained('bert-base-uncased', num_labels=2)
@@ -144,32 +147,35 @@ def get_inference(inputstring, model_name, DEVICE):
 
     postproc_start = time.time()
     segments = []
+    total_len = 0
+    total_len_char = 0
     for i in range(len(boundaries)):
         if (len(boundaries[i]) == 0):
-            # print("No boundaries found")
             seg = TOKENIZER.decode(x[i])
             seg = seg.replace("[unused0]", "")
             seg = seg.replace("[unused1]", "")
-
             seg = seg.rstrip()
             if len(seg) != 0:
                 segments.append([f'0, {len(seg.split())}', seg])
-            # print('seg1', seg)
+                total_len+=len(seg.split(" "))
+                total_len_char+=len(seg)
         else:
             start = 0
             for boundary in boundaries[i]:
                 if (start == 0 or start != boundary):
-                    # print(start, boundary)
                     seg = TOKENIZER.decode(x[i][start:boundary+1])
                     seg = seg.replace("[unused0]", "")
                     seg = seg.replace("[unused1]", "")
                     seg = seg.rstrip()
                     if len(seg) != 0:
                         segments.append([f"{str(start)},{str(boundary)}", seg])
-                    # print('seg2', seg)
+                        total_len += len(seg.split(" "))
+                        total_len_char += len(seg)
                     start = boundary + 1
                 else:
                     continue
+    if total_len < inputstring_len:
+        segments.append([f"{str(total_len+1)},{str(inputstring_len+1)}", " ".join(sent.split(" ")[total_len:])])
     end_proc = time.time()
     print('post processing time;', end_proc-postproc_start)
     return segments
@@ -182,7 +188,6 @@ def preprocess_sent(sent):
     return sent
 
 def run_segbot_bert_uncased(sent, device):
-    sent = preprocess_sent(sent)
     start_time = time.time()
     output = get_inference(sent, "BERT_token_classification_final.pth", device)
     end_time = time.time()
@@ -192,7 +197,6 @@ def run_segbot_bert_uncased(sent, device):
 def run_segbot_bert_cased(sent, device):
     global TOKENIZER 
     TOKENIZER = AutoTokenizer.from_pretrained("bert-base-cased")
-    sent = preprocess_sent(sent)
     start_time = time.time()
     output = get_inference(sent, "BERT_token_classification_final_cased.pth", device)
     end_time = time.time()

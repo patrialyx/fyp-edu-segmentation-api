@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from BARTTokenClassification.run_segbot_bart import run_segbot_bart
-from BERTTokenClassification.run_bert import run_segbot_bert_cased, run_segbot_bert_uncased
+from .BARTTokenClassification.run_segbot_bart import run_segbot_bart
+from .BERTTokenClassification.run_bert import run_segbot_bert_cased, run_segbot_bert_uncased
 import warnings
 
 class SegmentationStrategy(ABC):
@@ -18,21 +18,21 @@ class ConjunctionSegmentation(SegmentationStrategy):
             index_end = index_str[1]
             word_str = segment[1]
             word_str = word_str.strip()
-            testing_var = word_str.rstrip(".")
+            word_str = word_str.rstrip(".")
             
-            if testing_var.startswith(tuple(conjunctions)) and not testing_var.endswith(tuple(conjunctions)):
+            if word_str.startswith(tuple(conjunctions)) and not word_str.endswith(tuple(conjunctions)):
                 splitted = word_str.split()
                 first_word = splitted[0]
                 remaining_words = " ".join(splitted[1:])
                 results.append([f'{index_begin}, {int(index_begin)+1}', first_word])
                 results.append([f'{int(index_begin)+2}, {index_end}', remaining_words])
-            elif testing_var.endswith(tuple(conjunctions)) and not testing_var.startswith(tuple(conjunctions)):
+            elif word_str.endswith(tuple(conjunctions)) and not word_str.startswith(tuple(conjunctions)):
                 splitted = word_str.split()
                 remaining_words = " ".join(splitted[:-1])
                 last_word = splitted[-1]
                 results.append([f'{index_begin}, {int(index_begin)+len(splitted)-1}', remaining_words])
                 results.append([f'{int(index_begin)+len(splitted)}, {index_end}', last_word])
-            elif testing_var.endswith(tuple(conjunctions)) and testing_var.startswith(tuple(conjunctions)):
+            elif word_str.endswith(tuple(conjunctions)) and word_str.startswith(tuple(conjunctions)):
                 splitted = word_str.split()
                 first_word = splitted[0]
                 remaining_words = " ".join(splitted[1:-1])

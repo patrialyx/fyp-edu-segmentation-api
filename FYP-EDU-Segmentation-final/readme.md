@@ -13,8 +13,8 @@ To use the EDUSegmentation module, follow these steps:
 
 1. Import the `download` module to download all models:<br>
 ```
-from edu_segmentation import download
-download.download_models()
+from edu_segmentation.download import download_models
+download_models()
 ```
 
 2. Import the `edu_segmentation` module and its related classes<br>
@@ -30,7 +30,7 @@ You can choose between the default segmentation strategy or a conjunction-based 
 <strong>Conjunction-based segmentation strategy:</strong> After the text has been EDU-segmented, if there are conjunctions at the start or end of each segment, the conjunctions will be isolated as its own segment.<br><br>
 <strong>Default segmentation strategy: </strong> No post-processing occurs after the text has been EDU-segmented <br><br>
 ```
-from edu_segmentation import DefaultSegmentation, ConjunctionSegmentation
+from edu_segmentation.main import DefaultSegmentation, ConjunctionSegmentation
 ```
 
 2. Create a model using the `ModelFactory`. <br><br>
@@ -62,19 +62,22 @@ segmented_output = edu_segmenter.run(text, granularity, conjunctions, device)
 Here's a simple example demonstrating how to use the edu_segmentation module:
 
 ```
-from EDUSegmentation import EDUSegmentation, ModelFactory, BERTUncasedModel, ConjunctionSegmentation
+from edu_segmentation.download import download_models
+from edu_segmentation.main import ModelFactory, EDUSegmentation
+
+download_models()
 
 # Create a BERT Uncased model
-model = ModelFactory.create_model("bert_uncased")
+model = ModelFactory.create_model("bart") # or bert_cased or bert_uncased
 
 # Create an instance of EDUSegmentation using the model
 edu_segmenter = EDUSegmentation(model)
 
 # Segment the text using the conjunction-based segmentation strategy
 text = "The food is good, but the service is bad."
-granularity = "conjunction_words"
-conjunctions = ["and", "but", "however"]
-device = 'cpu'
+granularity = "conjunction_words" # or default
+conjunctions = ["and", "but", "however"] # customise as needed
+device = 'cpu' # or cuda
 
 segmented_output = edu_segmenter.run(text, granularity, conjunctions, device)
 print(segmented_output)
