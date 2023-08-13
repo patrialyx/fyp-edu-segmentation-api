@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "edu_segmentation"
-version = "v0.0.113"
+version = "v0.0.115"
 description = "To improve EDU segmentation performance using Segbot. As Segbot has an encoder-decoder model architecture, we can replace bidirectional GRU encoder with generative pretraining models such as BART and T5. Evaluate the new model using the RST dataset by using few-shot based settings (e.g. 100 examples) to train the model, instead of using the full dataset."
 authors = ["Your Name <you@example.com>"]
 readme = "readme.md"
@@ -80,3 +80,6 @@ urllib3 = "==1.26.15"
 virtualenv = ">20.4.5"
 webencodings = "==0.5.1"
 zipp = "==3.15.0"
+
+[tool.poetry.exclusions]
+test = ["test/*"]
